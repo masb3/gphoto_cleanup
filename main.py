@@ -3,13 +3,14 @@ import shutil
 from pathlib import Path
 
 
-def cleanup_google_photos(source_dir, target_base_dir):
+def cleanup_google_photos(source_dir, target_base_dir, dry_run=False):
     """
     Move all non-JSON files from source directory to organized structure.
 
     Args:
         source_dir: Source directory path (/Users/dmitri/Downloads/zips/takeouts)
         target_base_dir: Target base directory (/Users/dmitri/Downloads/zips/takeouts/gphoto)
+        dry_run: If True, only preview changes without moving files
     """
     source_path = Path(source_dir)
     target_path = Path(target_base_dir)
@@ -66,17 +67,21 @@ def cleanup_google_photos(source_dir, target_base_dir):
 
             try:
                 # Move the file
-                shutil.move(str(source_file), str(target_file))
-                moved_count += 1
-                print(f"Moved: {source_file.name} -> {folder_name}/")
+                if not dry_run:
+                    shutil.move(str(source_file), str(target_file))
+                    moved_count += 1
+                    print(f"Moved: {source_file.name} -> {folder_name}/")
+                else:
+                    moved_count += 1
+                    print(f"[DRY RUN] Would move: {source_file.name} -> {folder_name}/")
             except Exception as e:
                 print(f"Error moving {source_file}: {e}")
 
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print(f"Cleanup complete!")
     print(f"Files moved: {moved_count}")
     print(f"JSON files skipped: {skipped_count}")
-    print(f"{'='*50}")
+    print(f"{'=' * 50}")
 
 
 if __name__ == "__main__":
@@ -84,17 +89,23 @@ if __name__ == "__main__":
     SOURCE_DIR = "/Users/dmitri/Downloads/zips/takeouts"
     TARGET_DIR = "/Users/dmitri/Downloads/zips/takeouts/gphoto"
 
+    # Dry run mode - set to True to preview without moving files
+    DRY_RUN = False
+
     # Confirm before proceeding
     print("Google Photos Cleanup Script")
     print("=" * 50)
     print(f"Source: {SOURCE_DIR}")
     print(f"Target: {TARGET_DIR}")
-    print("\nThis will move all non-JSON files to the gphoto directory.")
+    if DRY_RUN:
+        print("\n⚠️  DRY RUN MODE - No files will be moved ⚠️")
+    else:
+        print("\nThis will move all non-JSON files to the gphoto directory.")
     print("=" * 50)
 
     response = input("\nProceed? (yes/no): ").lower().strip()
 
     if response == 'yes':
-        cleanup_google_photos(SOURCE_DIR, TARGET_DIR)
+        cleanup_google_photos(SOURCE_DIR, TARGET_DIR, DRY_RUN)
     else:
         print("Operation cancelled.")
